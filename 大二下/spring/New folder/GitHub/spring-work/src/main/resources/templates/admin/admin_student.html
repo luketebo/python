@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>作业管理系统</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.css" rel="stylesheet">
+
+    <link rel="stylesheet" type="text/css" href="/css/select.css">
+    <link rel="stylesheet" type="text/css" href="/css/弹窗.css">
+</head>
+<body>
+<div class="bigbox">
+    <input type="checkbox" id="checkbox">
+    <label for="checkbox">
+        <img src="/icon/menu.png" alt="功能按钮">
+    </label>
+    <ul>
+        <li><a href="#" class="w"><img src="/icon/user.png" alt="1"><span>管理员</span></a></li>
+        <li><a href="/AssignMent/teacher/admin"><img src="/icon/te.png" alt="2"><span>管理老师</span></a></li>
+        <li><a href="/AssignMent/student/admin"><img src="/icon/stu.png" alt="3"><span>管理学生</span></a></li>
+    </ul>
+</div>
+<div class="body">
+    <table class="table table-bordered">
+        <caption style="font-size: 25px;margin-left: 20px"> 学生管理 <a class="btn btn-default btn-small" href="#" role="button" style="margin-right: 10px;float: right"><span class="glyphicon glyphicon-user"></span> 添加</a></caption>
+        <thead>
+        <tr>
+            <th class="text-center">学号</th>
+            <th class="text-center">姓名</th>
+            <th class="text-center">班级</th>
+            <th class="text-center">操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="s:${students}">
+            <td class="text-center" th:text="${s.id}"></td>
+            <td class="text-center" th:text="${s.username}"></td>
+            <td class="text-center" th:text="${s.classId}"></td>
+            <td class="text-center main">
+                <button class="btn btn-default btn-small update"><span class="glyphicon glyphicon-pencil"></span> 更新<small></small></button>
+
+                <div class="modal">
+                    <form class="modal-content" role="form" th:action="@{/AssignMent/student/update}" method="post">
+                        <div > <span style="font-size: 20px;text-align: left">更新信息</span><span class="close">&times;</span></div>
+                        <hr style="margin-top: 5px">
+                        <div >
+                            <label for="id" style="margin: 0 -145px 10px;padding-right: 170px">学号：</label>
+                            <p id="id" class="from-control-static" style="display: inline-block" th:text="${s.id}"></p>
+                            <input type="hidden" name="id" th:value="${s.id}">
+                        </div>
+                        <div >
+                            <label for="username" style="margin: 0 20px 10px;">姓名：</label>
+                            <input id="username" type="text" name="username" th:value="${s.username}">
+                        </div>
+                        <div>
+                            <label for="classes" style="margin: 0 6px 10px">管理班级：</label>
+                            <input id="classes" type="text" name="classId" th:value="${s.classId}">
+                        </div>
+                        <div>
+                            <button class="btn btn-default" type="submit">提 交</button>
+                        </div>
+                    </form>
+                </div>
+
+                <a class="btn btn-default btn-small" href="#" role="button" th:onclick="'delstu(\''+${s.id}+'\');'"><span class="glyphicon glyphicon-trash"></span> 删除</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <ul class="pager">
+        <li th:class="${previous}? 'previous':'disabled'" style="margin-right: 150px;"><a style="float: none;" th:href="@{/AssignMent/student/admin(pn=${now}-1)}">&larr;Prev</a></li>
+        <li th:class="${next}? 'next':'disabled'" style="margin-left: 150px;"><a style="float: none" th:href="@{/AssignMent/student/admin(pn=${now}+1)}">&rarr;Next</a></li>
+    </ul>
+</div>
+
+<script type="text/javascript">
+    // 获取 <span> 元素，用于关闭弹窗
+    var span = document.getElementsByClassName('close');
+    // 获取弹窗
+    var modal = document.getElementsByClassName("modal");
+    // 打开弹窗的按钮对象
+    var btn_1 = document.getElementsByClassName("update");
+    for(var j=0;j<modal.length;j++){
+        const i=j;
+        btn_1[i].onclick = function (){
+            n(i);
+        }
+        span[i].onclick = function (){
+            m(i);
+        }
+    }
+    function n(i){
+        modal[i].style.display = "block";
+    }
+    function m(i){
+        modal[i].style.display = "none";
+    }
+    function delstu(id){
+        if (confirm("确定删除？")){
+            window.location.href="/AssignMent/student/delstu?id="+id;//get请求
+        }
+    }
+</script>
+</body>
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/2.2.4/jquery.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.js"></script>
+</html>

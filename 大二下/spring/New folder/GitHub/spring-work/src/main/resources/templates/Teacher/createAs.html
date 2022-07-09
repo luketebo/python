@@ -1,0 +1,147 @@
+<style>
+    #asCon .card * {
+        user-select: text;
+    }
+
+
+    #asCon .card a {
+        user-select: none;
+    }
+</style>
+
+<div id="asCon" class="container d-flex flex-column justify-content-start">
+    <h1 class="title">布置作业</h1>
+    <div class="fun my-5">
+        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#InfoModal"
+            data-bs-action="new">布置作业</button>
+    </div>
+    <div class="his" id="history"></div>
+</div>
+
+<div class="modal fade" id="InfoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="input-group flex-nowrap mb-3">
+                        <span class="input-group-text col-form-label">作业标题:</span>
+                        <input type="text" class="form-control" placeholder="标题" id="title_as"
+                            aria-describedby="addon-wrapping">
+                    </div>
+                    <div class="input-group flex-nowrap mb-3">
+                        <span class="input-group-text col-form-label">内容:</span>
+                        <textarea rows="9" maxlength="512" class="form-control" aria-label="content of assignment"
+                            id="content_as"></textarea>
+                    </div>
+                    <div class="input-group flex-nowrap mb-3">
+                        <span class="input-group-text col-form-label">班级:</span>
+                        <select class="form-select" aria-label="Class select" id="classes">
+                            <option selected>选择班级</option>
+                            <option value="1">一班</option>
+                            <option value="2">二班</option>
+                            <option value="3">三班</option>
+                        </select>
+                    </div>
+                    <div class="input-group flex-nowrap mb-3">
+                        <span class="input-group-text col-form-label">结束时间:</span>
+                        <input type="datetime-local" class="form-control" placeholder="结束时间" id="deadLine"
+                            aria-describedby="addon-wrapping">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="upload">确认</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var total_pages = 0;
+    var current_page = 0;
+    var createId = 0;
+    $(() => {
+        $.ajax({
+            url: "http://" + window.location.host + "/InfoGet/me", success: (r) => {
+                console.log(r)
+                createId = r;
+                $.ajax({
+                    url: ("http://" + window.location.host + "/InfoGet/getAs?pages=1&id=" + createId), success: (r) => {
+                        console.log(r["data"]["records"]);
+                        let result = r["data"]["records"]
+                        for (let i in r["data"]["records"]) {
+                            $("#history").append(create(result[i]["id"], result[i]["title"], result[i]["content"], result[i]["classId"], formatDate(result[i]["createTime"]), formatDate(result[i]["deadLine"])))
+                        }
+                    }
+                });
+            }
+        });
+        (() => {
+            console.log("fuck...");
+
+            $("#upload").click(() => {
+                let title = $("#title_as").val();
+                let content = $("#content_as").val();
+                let classes = $("#classes").val();
+                let deadLine = $("#deadLine").val();
+
+                $.ajax({
+                    url: "http://" + window.location.host + "/InfoPost/createAs", type: "post", data: JSON.stringify({
+                        "title": title,
+                        "content": content,
+                        "classes": parseInt(classes),
+                        "deadLine": deadLine,
+                        "createId": createId
+                    }), success: {
+
+                    }, dataType: "json"
+                    , contentType: "application/json"
+                })
+            })
+        })()
+    }
+    )
+
+    var infoModal = document.getElementById('InfoModal');
+    infoModal.addEventListener('show.bs.modal', function (event) {
+        // Button that triggered the modal
+        var button = event.relatedTarget;
+        // Extract info from data-bs-* attributes
+        var recipients = button.getAttribute('data-bs-action');
+        // Update the modal's content.
+        var modalTitle = infoModal.querySelector('.modal-title');
+        var modalBodyInputs = infoModal.querySelectorAll(".modal-body input");
+        var buttonUpload = infoModal.querySelector('#upload');
+        var pat = /(\w*)_(\d*)/;
+        try {
+            console.log(pat.exec(recipients));
+            let recipient = pat.exec(recipients)[1];
+        } catch (e) {
+            console.log(e);
+        }
+        if (!recipient) recipient = "new";
+        if (recipient == 'new') {
+            buttonUpload.setAttribute('action', 'add');
+            modalTitle.innerHTML = '布置作业';
+            for (var i = 0; i < modalBodyInputs.length; i++) {
+                modalBodyInputs[i].value = '';
+            }
+            modalBodyInputs[0].removeAttribute('readonly');
+        } else if (recipient == 'modify') {
+            var id = parseInt(button.getAttribute("id"));
+            $("." + id).children().each(function (index, element) {
+                if (index > 4) return;
+                modalBodyInputs[index].value = element.textContent;
+            });
+            buttonUpload.setAttribute('action', 'edit');
+            modalTitle.innerHTML = '修改作业';
+            modalBodyInputs[0].setAttribute('readonly', 'readonly');
+        }
+    })
+
+</script>
